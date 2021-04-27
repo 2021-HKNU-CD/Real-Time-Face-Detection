@@ -122,7 +122,7 @@ def StartFaceCapture():  # 얼굴 캡처를 시작함
             if k == 27:  # Esc 키를 누르면 종료
                 break
             elif k == 24:  # ctrl+x 누르면 얼굴 캡처
-                cv2.imwrite("FaceExample.png", frame)   # 네모 영역만 캡처가 안됨
+                cv2.imwrite("FaceExample.png", frame)   # 04.27 TODO: 사각형 영역만 캡처하는 방법 찾기
                 break
 
     cap.release()
