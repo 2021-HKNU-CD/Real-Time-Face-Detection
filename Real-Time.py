@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import tkinter as tk
 from tkinter import messagebox as msg
+from PIL import Image
 
 
 def AskSex():  # 얼굴인식 과정에서 성별을 판단할 수 있도록 하면 필요 없어짐  --> 참고: https://github.com/arunponnusamy/cvlib
@@ -87,6 +88,25 @@ def CheckUsingPersonalInformation():  # 개인정보 활용 동의 여부를 물
         # StartCapture() <-- 이런식으로 ?
 
 
+def ImgTrim(img, x, y, w, h):
+    """
+    이미지 파란 박스에 해당하는 부분만 잘라 저장하기
+    :param img: 저장할 이미지
+    :param x: x 좌표
+    :param y: y 좌표
+    :param w: width
+    :param h: height
+    :return: img_trim
+    """
+    x_trim = x;
+    y_trim = y;
+    w_trim = w;
+    h_trim = h;
+    saved_img = img[y:y_trim + h_trim, x:x_trim + w_trim]
+    cv2.imwrite('face_img.png', saved_img)
+    return saved_img
+
+
 def StartFaceCapture():  # 얼굴 캡처를 시작함
     """
     영상에서 얼굴 캡처를 시작하여, origin_img를 만듬
@@ -104,25 +124,23 @@ def StartFaceCapture():  # 얼굴 캡처를 시작함
     # out = cv2.VideoWriter('result/output.mp4', fourcc, 20.0, (640, 480)) # 캡처한 영상을 저장하기 위함
 
     while True:
-        ret, frame = cap.read()
-        frame = cv2.flip(frame, 1)  # 좌우 대칭
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        ret, frame = cap.read()  # 비디오의 프레임을 한 프레임씩 읽기
+        frame = cv2.flip(frame, 1)  # 좌우 대칭 프레임 생성
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # 프레임을 흑백으로 지정
         # out.write(frame) # 캡처한 영상을 저장하기 위함
 
         faces = face_cascade.detectMultiScale(gray, 1.05, 5)
 
         if len(faces):
             for (x, y, w, h) in faces:
-                cv2.rectangle(frame, (x-30, y-45), (x + w + 30, y + h+30), (255, 0, 0), 1)
+                cv2.rectangle(frame, (x - 30, y - 45), (x + w + 30, y + h + 30), (255, 0, 0), 1)
+                ImgTrim(frame, x - 25, y - 45, w + 50, h + 70)
 
             cv2.imshow('result', frame)
 
             k = cv2.waitKey(30) & 0xff
 
             if k == 27:  # Esc 키를 누르면 종료
-                break
-            elif k == 24:  # ctrl+x 누르면 얼굴 캡처
-                cv2.imwrite("FaceExample.png", frame)   # 04.27 TODO: 사각형 영역만 캡처하는 방법 찾기
                 break
 
     cap.release()
@@ -149,7 +167,7 @@ def ShowResult(output_img):
 
 
 def ShowResultTest():
-    image = cv2.imread("FaceExample.png", cv2.IMREAD_COLOR)  # 저장된 사진 가져오기   -->  Timestamp + FaceExample 으로 저장해야할 지 ?
+    image = cv2.imread("face_img.png", cv2.IMREAD_COLOR)
 
     cv2.imshow('Face', image)  # 저장된 사진 보내주기
 
@@ -157,10 +175,6 @@ def ShowResultTest():
     cv2.destroyAllWindows()
 
 
-CheckUsingPersonalInformation()
+# CheckUsingPersonalInformation()
 StartFaceCapture()
 ShowResultTest()
-
-
-# 해야할 일: 사각형의 크기를 늘리고, 이를 이용하여 얼굴 사진만 저장히기 (여백 포함)
-
